@@ -1,9 +1,14 @@
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.template import loader
 from django.urls import reverse
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.shortcuts import redirect
+
 
 from baham.enum_types import VehicleType
 from baham.models import VehicleModel
+from .models import Vehicle
 
 
 # Create your views here.
@@ -51,6 +56,27 @@ def save_vehicle(request):
         return HttpResponseBadRequest('Manufacturer and Model name fields are mandatory!')
     if not _capacity or _capacity < 2:
         _capacity = 2 if _type == VehicleType.MOTORCYCLE else 4
-    vehicleModel = VehicleModel(vendor=_vendor, model=_model, type=_type, capacity=_capacity)
+    is_voided = False
+    vehicleModel = VehicleModel(vendor=_vendor, model=_model, type=_type, capacity=_capacity, is_voided=is_voided)
     vehicleModel.save()
     return HttpResponseRedirect(reverse('vehicles'))
+
+def void_vehicles(request, vehicle_id):
+    vehicle = get_object_or_404(VehicleModel, pk=vehicle_id)
+    if request.method == 'POST':
+        reason_voided = request.POST.get('reason_voided')
+        vehicle.is_voided = True
+        vehicle.voided_date = timezone.now()
+        vehicle.reason_voided = reason_voided
+        vehicle.save()
+    return redirect('vehicles')
+
+
+def unvoid_vehicles(request, vehicle_id):
+    vehicle = get_object_or_404(VehicleModel, pk=vehicle_id)
+    vehicle.is_voided = False
+    vehicle.voided_date = None
+    vehicle.reason_voided = None
+    vehicle.save()
+    return redirect('vehicles')
+

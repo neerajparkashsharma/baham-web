@@ -1,39 +1,85 @@
 {% include 'header.html' %}
 
 <main role="main">
-
-    <div class="container col-auto">
-        <span class="text-center"><h2>Vehicles seeking your companionship</h2></span>
-        <table id="dataTable" class="table table-striped display table-responsive">
-            <thead>
-                <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Manufacturer</th>
-                    <th scope="col">Model Name</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Sitting Capacity</th>
-                    <th scope="col">Total Registered</th>
-                    <th scope="col">Edit/Delete</th>
-                </tr>
-            </thead>
-            {% for vehicle in vehicles %}
-                <tr>
-                    <td><a class="btn-link" href="#">{{vehicle.model_id}}</a></td>
-                    <td>{{vehicle.vendor}}</td>
-                    <td>{{vehicle.model}}</td>
-                    <td>{{vehicle.type}}</td>
-                    <td>{{vehicle.capacity}}</td>
-                    <td>0</td>
-                    <td>
-                        <button class="btn btn-warning">Edit</button>
-                        <button class="btn btn-danger" disabled="disabled">Delete</button>
-                    </td>
-                </tr>
-            {% endfor %}
-        </table>
+    <div class="container">
+        <h2 class="text-center">Vehicles seeking your companionship</h2>
+        <div class="table-responsive">
+            <table id="dataTable" class="table table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Manufacturer</th>
+                        <th scope="col">Model Name</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Sitting Capacity</th>
+                        <th scope="col">Total Registered</th>
+                        <th scope="col"></th>
+                        <th scope="col">Disable</th>
+                        <th scope="col">Edit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vehicle in vehicles %}
+                    <tr>
+                        <td>
+                            <a class="btn btn-link" href="#">{{ vehicle.model_id }}</a>
+                        </td>
+                        <td>{{ vehicle.vendor }}</td>
+                        <td>{{ vehicle.model }}</td>
+                        <td>{{ vehicle.type }}</td>
+                        <td>{{ vehicle.capacity }}</td>
+                        <td>0</td>
+                        <td>
+                            {% if vehicle.is_voided %}
+                                <span class="reason_voided">{{ vehicle.voided_reason }}</span>
+                            {% else %}
+                                <form id="voidForm{{ vehicle.model_id }}" class="void-form" data-vehicle-id="{{ vehicle.model_id }}" action="{% url 'voidvehicle' vehicle_id=vehicle.model_id %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <div class="input-group">
+                                        <input type="text" name="reason_voided" class="form-control void-reason-input" placeholder="Enter reason" style="display: none;">
+                                        <div class="input-group-append">
+                                            <button class="btn btn-danger void-button" type="button">Disable</button>
+                                            <button class="btn btn-danger confirm-void-button" type="submit" style="display: none;">Confirm</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </td>
+                        
+                        
+                        <td>
+                            <button class="btn btn-warning">Edit</button>
+                            {% if vehicle.is_voided %}
+                                <form action="{% url 'unvoidvehicle' vehicle_id=vehicle.model_id %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button class="btn btn-primary" type="submit">Enable</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         <a class="btn btn-success" href="{% url 'createvehicle' %}">Add yours</a>
     </div> <!-- /container -->
-
 </main>
 
 {% include 'footer.html' %}
+
+<script>
+    const voidForms = document.querySelectorAll('.void-form');
+
+    voidForms.forEach(form => {
+        const vehicleId = form.dataset.vehicleId;
+        const voidReasonInput = form.querySelector(`#voidForm${vehicleId} .void-reason-input`);
+        const voidButton = form.querySelector(`#voidForm${vehicleId} .void-button`);
+        const confirmVoidButton = form.querySelector(`#voidForm${vehicleId} .confirm-void-button`);
+
+        voidButton.addEventListener('click', () => {
+            voidReasonInput.style.display = 'inline-block';
+            voidButton.style.display = 'none';
+            confirmVoidButton.style.display = 'inline-block';
+        });
+    });
+</script>

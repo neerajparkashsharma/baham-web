@@ -31,33 +31,76 @@ class UserProfile(models.Model):
     active = models.BooleanField(default=True, editable=False)
     date_deactivated = models.DateTimeField(editable=False, null=True)
     bio = models.TextField()
+    created_on = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, null=True, related_name='created_user_profiles', on_delete=models.SET_NULL)
+    updated_on = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, null=True, related_name='updated_user_profiles', on_delete=models.SET_NULL)
+
+    is_voided = models.BooleanField(default=False)
+    voided_date = models.DateTimeField(null=True)
+    reason_voided = models.CharField(max_length=255, null=True)
 
     def __str__(self):
-        return f"{self.username} {self.first_name} {self.last_name}"
+        return f"{self.user.username} {self.user.first_name} {self.user.last_name}"
+
+    def void(self, reason_voided):
+        self.active = False
+        self.is_voided = True
+        self.voided_date = timezone.now()
+        self.reason_voided = void_reason
+        self.updated_on = timezone.now()
+        self.save()
+
+    def unvoid(self):
+        self.active = True
+        self.is_voided = False
+        self.voided_date = None
+        self.reason_voided = None
+        self.updated_on = timezone.now()
+        self.save()
 
 
 class VehicleModel(models.Model):
     model_id = models.AutoField(primary_key=True, db_column='id')
-    # Toyota, Honda, Suzuki, Kia, etc.
     vendor = models.CharField(max_length=20, null=False, blank=False)
-    # Corolla, Vitz, City, Sportage, etc.
     model = models.CharField(max_length=20, null=False, blank=False, default='Unknown')
-    # Sedan, Motorcyle, SUV, Van, etc.
     type = models.CharField(max_length=50, choices=[(t.name, t.value) for t in VehicleType],
                             help_text="Select the vehicle chassis type")
-    # Sitting capacity
     capacity = models.PositiveSmallIntegerField(null=False, default=2)
+    
+    created_on = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, null=True, related_name='created_vehicle_models', on_delete=models.SET_NULL)
+    updated_on = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, null=True, related_name='modified_vehicle_models', on_delete=models.SET_NULL)
+
+    is_voided = models.BooleanField(default=False)
+    voided_date = models.DateTimeField(null=True)
+    reason_voided = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = "baham_vehicle_model"
 
     def __str__(self):
         return f"{self.vendor} {self.model}"
+        
+    def void(self, reason_voided):
+        self.is_active = False
+        self.is_voided = True
+        self.voided_date = timezone.now()
+        self.reason_voided = void_reason
+        self.updated_on = timezone.now()
+        self.save()
 
+    def unvoid(self):
+        self.is_active = True
+        self.is_voided = False
+        self.voided_date = None
+        self.reason_voided = None
+        self.updated_on = timezone.now()
+        self.save()
 
 class Vehicle(models.Model):
     vehicle_id = models.AutoField(primary_key=True, db_column='id')
-    # ABC-877
     registration_number = models.CharField(max_length=10, unique=True, null=False, blank=False,
                                            help_text="Unique registration/license plate no. of the vehicle.")
     colour = models.CharField(max_length=50, default='white', validators=[validate_colour])
@@ -66,11 +109,33 @@ class Vehicle(models.Model):
     status = models.CharField(max_length=50, choices=[(t.name, t.value) for t in VehicleStatus])
     picture1 = models.ImageField(upload_to='pictures', null=True)
     picture2 = models.ImageField(upload_to='pictures', null=True)
+    created_on = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, null=True, related_name='created_vehicles', on_delete=models.SET_NULL)
+    updated_on = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, null=True, related_name='modified_vehicles', on_delete=models.SET_NULL)
+
+    is_voided = models.BooleanField(default=False)
+    voided_date = models.DateTimeField(null=True)
+    reason_voided = models.CharField(max_length=255, null=True)
 
     def __str__(self):
         return f"{self.model.vendor} {self.model.model} {self.colour}"
 
+    def void(self, reason_voided):
+        self.is_active = False
+        self.is_voided = True
+        self.voided_date = timezone.now()
+        self.reason_voided = void_reason
+        self.updated_on = timezone.now()
+        self.save()
 
+    def unvoid(self):
+        self.is_active = True
+        self.is_voided = False
+        self.voided_date = None
+        self.reason_voided = None
+        self.updated_on = timezone.now()
+        self.save()
 class Contract(models.Model):
     contract_id = models.AutoField(primary_key=True, db_column='id')
     vehicle = models.ForeignKey(Vehicle, null=False, on_delete=models.CASCADE)
@@ -80,4 +145,29 @@ class Contract(models.Model):
     is_active = models.BooleanField(default=True)
     fuel_share = models.PositiveSmallIntegerField(help_text="Percentage of fuel contribution.")
     maintenance_share = models.PositiveSmallIntegerField(help_text="Percentage of maintenance cost contribution.")
-    schedule = models.CharField(max_length=255, null=False)  #TODO: use Django Scheduler
+    schedule = models.CharField(max_length=255, null=False)  # TODO: use Django Scheduler
+
+    created_on = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, null=True, related_name='created_contracts', on_delete=models.SET_NULL)
+    updated_on = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, null=True, related_name='modified_contracts', on_delete=models.SET_NULL)
+
+    is_voided = models.BooleanField(default=False)
+    voided_date = models.DateTimeField(null=True)
+    reason_voided = models.CharField(max_length=255, null=True)
+    
+    def void(self, reason_voided):
+        self.is_active = False
+        self.is_voided = True
+        self.voided_date = timezone.now()
+        self.reason_voided = void_reason
+        self.updated_on = timezone.now()
+        self.save()
+
+    def unvoid(self):
+        self.is_active = True
+        self.is_voided = False
+        self.voided_date = None
+        self.reason_voided = None
+        self.updated_on = timezone.now()
+        self.save()
