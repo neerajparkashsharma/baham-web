@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- This goes into header.html -->
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Owais Hussain">
+    <meta name="description" content="Baham, an initiative by project Dareecha - 2023">
+
+    <title>Baham - in-campus ride sharing service</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="icon" href="favicon.png"/>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" integrity="sha512-pumBsjNRGGqkPzKHndZMaAG+bir374sORyzM3uulLV14lN5LyykqNk8eEeUlUkB3U0M4FApyaHraT65ihJhDpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js" integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <style>
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .form-container {
+        max-width: 400px;
+        width: 100%;
+    }
+
+    .form-container .form-group {
+        margin-bottom: 20px;
+    }
+    </style>
+
+</head>
+
+
+<body class="flex-column min-vh-100">
+
+    <div class="container">
+        <div class="form-container ">
+          <h2 class="text-center">Login to Baham</h2>
+
+          <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div class="form-group">
+              <label for="username">Username/Email</label>
+              <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary btn-block">Login</button>
+              <a href="/forgot-password">Forgot Password?</a>
+            </div>
+          </form>
+
+          {% if message %}
+            <div class="alert alert-danger" role="alert">
+              {{message}}
+            </div>
+          {% endif %}
+
+        </div>
+      </div>
+    
+</body>
+</html>

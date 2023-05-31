@@ -1,0 +1,31 @@
+{% include 'header.html' %}
+
+<form action="update/" method="post">
+{% csrf_token %}
+    <div class="container col-auto w-50">
+        <span class="text-justify"><h2>Edit a new Vehicle model</h2></span>
+        <div class="row m-4"><label class="label">UUID</label><input name="uuid" class="form-control" type="text" maxlength="38" value="{{vehicle.uuid}}" readonly></div>
+        <div class="row m-4"><label class="label">Manufacturer</label><input name="vendor" class="form-control" type="text" maxlength="50" value="{{vehicle.vendor}}" required></div>
+        <div class="row m-4"><label>Model</label><input name="model" class="form-control" type="text" maxlength="50" value="{{vehicle.model}}" required></div>
+        <div class="row m-4"><label>Type</label>
+          <select name="type" class="form-control">
+              <option value="">Select one ...</option>
+              {% for value, label in vehicle_types %}
+              <option value={{value}}
+              {% if value == vehicle.type %}
+              selected="selected"
+              {% endif %}
+              >{{label}}</option>
+              {% endfor %}
+          </select>
+        </div>
+        <div class="row m-4"><label>Sitting Capacity</label><input name="capacity" class="form-control" type="number" maxlength="2" min="1" max="60" step="1" value="{{vehicle.capacity}}" required></div>
+        <div class="row m-4"><label>UUID</label><label>{{vehicle.date_created}}</label></div>
+        <div class="row m-4"><label>UUID</label><label>{{vehicle.created_by}}</label></div>
+        <button type="submit" class="btn btn-primary m-4">Update</button>
+        <button type="button" class="btn btn-warning m-4" onclick="clearForm();">Clear</button>
+    </div> <!-- /container -->
+</form>
+
+<br>
+{% include 'footer.html' %}

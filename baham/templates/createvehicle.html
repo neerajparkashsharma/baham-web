@@ -1,0 +1,110 @@
+{% include 'header.html' %}
+
+<script>
+    // jQuery to change the icon on model selection according to the type
+    $(document).ready(function() {
+       $("#model").change(function() {
+        var values = $('#model').val();
+        // Caution! This is highly dependent on the text format in the model selection
+        const arr = values.split('|');
+        if (arr.length == 3) {
+            console.log("Vehicle type:" + arr[2]);
+            // Set the icon image from static/images
+            $('#modelThumbnail').attr('src', '/static/images/' + arr[2].trim() + '.png');
+        }
+        const selectedOption = $('#models option[value="' + $("#model").val() + '"]');
+        $('#model_uuid').val(selectedOption.data('uuid'));
+       }); 
+    });
+
+    // Clear the input fields
+    function clearForm() {
+        $('input[type="text"]').val('');
+        $('input[type="color"]').val('#ff0000');
+        $('input[type="radio"]').prop('checked', false);
+        $('input[type="file"]').val('');
+        // Clear the datalist selection
+        $('#model').val('');
+        // Reset the image thumbnail
+        $('#modelThumbnail').attr('src', '/static/images/GENERIC_CAR.png');
+    }
+    
+</script>
+
+<!-- Notes! -->
+<!-- You must provide enctype="multipart/form-data" to enable file uploads -->
+<!-- To choose a model, we are using data list. This isn't compatible with all browsers -->
+
+<form action="save/" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="container-fluid w-50">
+        <span class="text-justify"><h2>Register your Vehicle</h2></span>
+
+        <div class="row m-4">
+            <label><h6>Registration Number</h6></label>
+            <input name="registration_number" class="form-control" type="text" maxlength="10" placeholder="E.g. WAD-834" required>
+        </div>
+
+        <div class="row m-4"><label for="models"><h6>Model</h6></label>
+            <div class="col-10">
+                <input name="model" id="model" list="models" class="form-control" autocomplete="off" required>
+                <datalist id="models">
+                    <option value="">Select one ...</option>
+                    {% for model in models %}
+                    <option value="{{model.vendor}} | {{model.model}} | {{model.type}}" data-uuid="{{model.uuid}}"></option>
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="col-2">
+                <img id="modelThumbnail" src="/static/images/GENERIC_CAR.png" class="rounded mx-auto" width="40">
+            </div>
+            <input type="hidden" id="model_uuid" name="model_uuid" />
+        </div>
+
+        <div class="row m-4">
+            <label><h6>Vehicle Colour: </h6> </label>
+            <input type="color" id="colour" name="colour" value="#ff0000" required>
+        </div>
+
+        <div class="row m-4">
+            <label><h6>Status</h6></label>
+            <div>
+                {% for value, label in vehicle_statuses %}
+                <div class="form-check">
+                    {% if value == "AVAILABLE" %}
+                    <input class="form-check-input" type="radio" name="status" id="status_{{value}}" value="{{value}}" checked>
+                    {% else %}
+                    <input class="form-check-input" type="radio" name="status" id="status_{{value}}" value="{{value}}">
+                    {% endif %}
+                    <label class="form-check-label" for="{{value}}">
+                        {{label}}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="row m-4">
+            <label><h6>Upload Image (front):</h6></label>
+            <input type="file" name="image1" accept="image/*" required>
+        </div>
+
+        <div class="row m-4">
+            <label><h6>Upload Image (side):</h6></label>
+            <input type="file" name="image2" accept="image/*">
+        </div>
+
+        {% if message %}
+        <div class="alert alert-danger" role="alert">
+            {{message}}
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary btn-lg m-4">Save</button>
+        <button type="button" class="btn btn-warning btn-lg m-4" onclick="clearForm();">Clear</button>
+    </div>
+</form>
+
+<br>
+
+{% include 'footer.html' %}
